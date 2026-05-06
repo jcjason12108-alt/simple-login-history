@@ -2,9 +2,11 @@
 /**
  * Plugin Name: Simple Login History
  * Description: Tracks WordPress login attempts, active sessions, logout times, browser, OS, IP address, and user agent in a local admin report.
- * Version: 1.2.6
+ * Version: 1.2.7
  * Author: Jason Cox
+ * Plugin URI: https://github.com/jcjason12108-alt/simple-login-history
  * Requires at least: 5.8
+ * Tested up to: 6.9.4
  * Requires PHP: 7.4
  * License: GPL-2.0-or-later
  * Text Domain: simple-login-history
@@ -14,8 +16,24 @@ if (!defined('ABSPATH')) {
 	exit;
 }
 
+if (file_exists(__DIR__ . '/plugin-update-checker/plugin-update-checker.php')) {
+	require_once __DIR__ . '/plugin-update-checker/plugin-update-checker.php';
+
+	$slh_update_checker = \YahnisElsts\PluginUpdateChecker\v5\PucFactory::buildUpdateChecker(
+		'https://github.com/jcjason12108-alt/simple-login-history/',
+		__FILE__,
+		'simple-login-history'
+	);
+	$slh_update_checker->setBranch('main');
+
+	$slh_github_token = defined('SLH_UPDATE_GITHUB_TOKEN') ? SLH_UPDATE_GITHUB_TOKEN : getenv('SLH_UPDATE_GITHUB_TOKEN');
+	if (!empty($slh_github_token)) {
+		$slh_update_checker->setAuthentication($slh_github_token);
+	}
+}
+
 final class Simple_Login_History {
-	private const VERSION = '1.2.6';
+	private const VERSION = '1.2.7';
 	private const TABLE_SUFFIX = 'simple_login_history';
 	private const SESSION_COOKIE = 'slh_session';
 	private const LAST_SEEN_META = '_slh_last_seen_update';
