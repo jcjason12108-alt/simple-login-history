@@ -25,6 +25,12 @@ if (file_exists(__DIR__ . '/plugin-update-checker/plugin-update-checker.php')) {
 		'simple-login-history'
 	);
 	$slh_update_checker->setBranch('main');
+	add_filter(
+		$slh_update_checker->getUniqueName('vcs_update_detection_strategies'),
+		static function (array $strategies): array {
+			return isset($strategies['branch']) ? ['branch' => $strategies['branch']] : $strategies;
+		}
+	);
 
 	$slh_github_token = defined('SLH_UPDATE_GITHUB_TOKEN') ? SLH_UPDATE_GITHUB_TOKEN : getenv('SLH_UPDATE_GITHUB_TOKEN');
 	if (!empty($slh_github_token)) {

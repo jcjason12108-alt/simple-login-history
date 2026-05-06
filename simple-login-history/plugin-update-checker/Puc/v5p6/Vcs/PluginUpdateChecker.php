@@ -78,7 +78,7 @@ if ( !class_exists(PluginUpdateChecker::class, false) ):
 
 			//Get headers from the main plugin file in this branch/tag. Its "Version" header and other metadata
 			//are what the WordPress install will actually see after upgrading, so they take precedence over releases/tags.
-			$mainPluginFile = basename($this->pluginFile);
+			$mainPluginFile = $this->pluginFile;
 			$remotePlugin = $api->getRemoteFile($mainPluginFile, $ref);
 			if ( !empty($remotePlugin) ) {
 				$remoteHeader = $this->package->getFileHeader($remotePlugin);
@@ -175,7 +175,16 @@ if ( !class_exists(PluginUpdateChecker::class, false) ):
 		 * @param Plugin\PluginInfo $pluginInfo
 		 */
 		protected function setInfoFromRemoteReadme($ref, $pluginInfo) {
-			$readme = $this->api->getRemoteReadme($ref);
+			$readmeFile = $this->api->getLocalReadmeName();
+			$pluginDirectory = dirname($this->pluginFile);
+			$readmePath = ($pluginDirectory !== '.') ? ($pluginDirectory . '/' . $readmeFile) : $readmeFile;
+			$readmeContents = $this->api->getRemoteFile($readmePath, $ref);
+			if ( empty($readmeContents) ) {
+				return;
+			}
+
+			$parser = new \PucReadmeParser();
+			$readme = $parser->parse_readme_contents($readmeContents);
 			if ( empty($readme) ) {
 				return;
 			}
