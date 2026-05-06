@@ -78,7 +78,7 @@ if ( !class_exists(PluginUpdateChecker::class, false) ):
 
 			//Get headers from the main plugin file in this branch/tag. Its "Version" header and other metadata
 			//are what the WordPress install will actually see after upgrading, so they take precedence over releases/tags.
-			$mainPluginFile = $this->pluginFile;
+			$mainPluginFile = $this->getRemotePluginPath(basename($this->pluginFile));
 			$remotePlugin = $api->getRemoteFile($mainPluginFile, $ref);
 			if ( !empty($remotePlugin) ) {
 				$remoteHeader = $this->package->getFileHeader($remotePlugin);
@@ -176,8 +176,7 @@ if ( !class_exists(PluginUpdateChecker::class, false) ):
 		 */
 		protected function setInfoFromRemoteReadme($ref, $pluginInfo) {
 			$readmeFile = $this->api->getLocalReadmeName();
-			$pluginDirectory = dirname($this->pluginFile);
-			$readmePath = ($pluginDirectory !== '.') ? ($pluginDirectory . '/' . $readmeFile) : $readmeFile;
+			$readmePath = $this->getRemotePluginPath($readmeFile);
 			$readmeContents = $this->api->getRemoteFile($readmePath, $ref);
 			if ( empty($readmeContents) ) {
 				return;
@@ -205,6 +204,15 @@ if ( !class_exists(PluginUpdateChecker::class, false) ):
 			if ( isset($readme['upgrade_notice'], $readme['upgrade_notice'][$pluginInfo->version]) ) {
 				$pluginInfo->upgrade_notice = $readme['upgrade_notice'][$pluginInfo->version];
 			}
+		}
+
+		protected function getRemotePluginPath($fileName) {
+			$pluginDirectory = dirname($this->pluginFile);
+			if ( ($pluginDirectory === '.') || ($pluginDirectory === '') ) {
+				$pluginDirectory = $this->slug;
+			}
+
+			return ($pluginDirectory !== '.') ? ($pluginDirectory . '/' . $fileName) : $fileName;
 		}
 
 		/**
