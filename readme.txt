@@ -2,9 +2,9 @@
 Contributors: Jason Cox
 Tags: login, history, audit, users
 Requires at least: 5.8
-Tested up to: 6.9.4
+Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.2.7
+Stable tag: 1.2.8
 License: GPL-2.0-or-later
 
 Tracks WordPress login attempts, successful sessions, logout times, last seen timestamps, browser, OS, IP address, and user agent.
@@ -64,6 +64,9 @@ If the repository is private, add a GitHub token with read access to the reposit
 `define( 'SLH_UPDATE_GITHUB_TOKEN', 'your-github-token' );`
 
 == Changelog ==
+
+= 1.2.8 =
+* Verified WordPress 7.0 compatibility and PHP 7.4 support.
 
 = 1.2.7 =
 * Added GitHub update support with Plugin Update Checker.

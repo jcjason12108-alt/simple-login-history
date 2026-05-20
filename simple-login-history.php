@@ -2,11 +2,11 @@
 /**
  * Plugin Name: Simple Login History
  * Description: Tracks WordPress login attempts, active sessions, logout times, browser, OS, IP address, and user agent in a local admin report.
- * Version: 1.2.7
+ * Version: 1.2.8
  * Author: Jason Cox
  * Plugin URI: https://github.com/jcjason12108-alt/simple-login-history
  * Requires at least: 5.8
- * Tested up to: 6.9.4
+ * Tested up to: 7.0
  * Requires PHP: 7.4
  * License: GPL-2.0-or-later
  * Text Domain: simple-login-history
@@ -39,7 +39,7 @@ if (file_exists(__DIR__ . '/plugin-update-checker/plugin-update-checker.php')) {
 }
 
 final class Simple_Login_History {
-	private const VERSION = '1.2.7';
+	private const VERSION = '1.2.8';
 	private const TABLE_SUFFIX = 'simple_login_history';
 	private const SESSION_COOKIE = 'slh_session';
 	private const LAST_SEEN_META = '_slh_last_seen_update';
