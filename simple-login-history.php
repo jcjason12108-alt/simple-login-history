@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Simple Login History
  * Description: Tracks WordPress login attempts, active sessions, logout times, browser, OS, IP address, and user agent in a local admin report.
- * Version: 1.2.8
+ * Version: 1.2.9
  * Author: Jason Cox
  * Plugin URI: https://github.com/jcjason12108-alt/simple-login-history
  * Requires at least: 5.8
@@ -39,7 +39,7 @@ if (file_exists(__DIR__ . '/plugin-update-checker/plugin-update-checker.php')) {
 }
 
 final class Simple_Login_History {
-	private const VERSION = '1.2.8';
+	private const VERSION = '1.2.9';
 	private const TABLE_SUFFIX = 'simple_login_history';
 	private const SESSION_COOKIE = 'slh_session';
 	private const LAST_SEEN_META = '_slh_last_seen_update';
@@ -672,14 +672,14 @@ final class Simple_Login_History {
 		$this->handle_admin_actions();
 		$this->refresh_app_login_statuses();
 
-		$page = max(1, absint($_GET['paged'] ?? 1));
+		$page = max(1, absint(wp_unslash($_GET['paged'] ?? 1)));
 		$per_page = (int) get_user_option('slh_login_history_per_page');
 		$per_page = $per_page > 0 ? $per_page : 20;
 		$search = sanitize_text_field(wp_unslash($_GET['s'] ?? ''));
-		$status = sanitize_key($_GET['status'] ?? '');
-		$source = $this->sanitize_source($_GET['source'] ?? '');
-		$order_by = $this->sanitize_order_by($_GET['orderby'] ?? 'login_at');
-		$order = ('asc' === strtolower((string) ($_GET['order'] ?? 'desc'))) ? 'ASC' : 'DESC';
+		$status = sanitize_key(wp_unslash($_GET['status'] ?? ''));
+		$source = $this->sanitize_source(wp_unslash($_GET['source'] ?? ''));
+		$order_by = $this->sanitize_order_by(wp_unslash($_GET['orderby'] ?? 'login_at'));
+		$order = ('asc' === strtolower((string) wp_unslash($_GET['order'] ?? 'desc'))) ? 'ASC' : 'DESC';
 
 		$records = $this->get_records($page, $per_page, $search, $status, $source, $order_by, $order);
 		$total = $this->count_records($search, $status, $source);
@@ -921,15 +921,15 @@ final class Simple_Login_History {
 			'store_ip' => isset($_POST['store_ip']) ? 1 : 0,
 			'track_wordpress_logins' => isset($_POST['track_wordpress_logins']) ? 1 : 0,
 			'track_app_logins' => isset($_POST['track_app_logins']) ? 1 : 0,
-			'track_roles' => $this->sanitize_roles($_POST['track_roles'] ?? []),
-			'auto_logout_minutes' => min(1440, absint($_POST['auto_logout_minutes'] ?? 0)),
-			'auto_logout_roles' => $this->sanitize_roles($_POST['auto_logout_roles'] ?? []),
-			'auto_delete_days' => min(3650, absint($_POST['auto_delete_days'] ?? 0)),
+			'track_roles' => $this->sanitize_roles(wp_unslash($_POST['track_roles'] ?? [])),
+			'auto_logout_minutes' => min(1440, absint(wp_unslash($_POST['auto_logout_minutes'] ?? 0))),
+			'auto_logout_roles' => $this->sanitize_roles(wp_unslash($_POST['auto_logout_roles'] ?? [])),
+			'auto_delete_days' => min(3650, absint(wp_unslash($_POST['auto_delete_days'] ?? 0))),
 			'email_success' => isset($_POST['email_success']) ? 1 : 0,
 			'email_failed' => isset($_POST['email_failed']) ? 1 : 0,
-			'email_roles' => $this->sanitize_roles($_POST['email_roles'] ?? []),
+			'email_roles' => $this->sanitize_roles(wp_unslash($_POST['email_roles'] ?? [])),
 			'email_to' => sanitize_email(wp_unslash($_POST['email_to'] ?? get_option('admin_email'))),
-			'csv_separator' => $this->sanitize_csv_separator($_POST['csv_separator'] ?? ','),
+			'csv_separator' => $this->sanitize_csv_separator(wp_unslash($_POST['csv_separator'] ?? ',')),
 		];
 
 		if (!is_email($options['email_to'])) {
@@ -952,10 +952,10 @@ final class Simple_Login_History {
 		}
 
 		$search = sanitize_text_field(wp_unslash($_GET['s'] ?? ''));
-		$status = sanitize_key($_GET['status'] ?? '');
-		$source = $this->sanitize_source($_GET['source'] ?? '');
-		$order_by = $this->sanitize_order_by($_GET['orderby'] ?? 'login_at');
-		$order = ('asc' === strtolower((string) ($_GET['order'] ?? 'desc'))) ? 'ASC' : 'DESC';
+		$status = sanitize_key(wp_unslash($_GET['status'] ?? ''));
+		$source = $this->sanitize_source(wp_unslash($_GET['source'] ?? ''));
+		$order_by = $this->sanitize_order_by(wp_unslash($_GET['orderby'] ?? 'login_at'));
+		$order = ('asc' === strtolower((string) wp_unslash($_GET['order'] ?? 'desc'))) ? 'ASC' : 'DESC';
 		$this->refresh_app_login_statuses();
 		$rows = $this->get_records(1, 50000, $search, $status, $source, $order_by, $order);
 		$separator = $this->csv_separator();
@@ -1010,7 +1010,8 @@ final class Simple_Login_History {
 			}
 		}
 
-		if ('POST' !== $_SERVER['REQUEST_METHOD']) {
+		$request_method = isset($_SERVER['REQUEST_METHOD']) ? sanitize_key(wp_unslash($_SERVER['REQUEST_METHOD'])) : '';
+		if ('POST' !== $request_method) {
 			return;
 		}
 
@@ -1148,7 +1149,7 @@ final class Simple_Login_History {
 
 		echo '<div class="tablenav-pages">';
 		printf('<span class="displaying-num">%s</span>', esc_html(sprintf(_n('%s item', '%s items', $total, 'simple-login-history'), number_format_i18n($total))));
-		echo paginate_links(
+		echo wp_kses_post(paginate_links(
 			[
 				'base' => add_query_arg(array_merge($base_args, ['paged' => '%#%'])),
 				'format' => '',
@@ -1157,7 +1158,7 @@ final class Simple_Login_History {
 				'total' => $total_pages,
 				'current' => $page,
 			]
-		);
+		));
 		echo '</div>';
 	}
 
